@@ -1,13 +1,19 @@
-from malisLoss import malis_loss
 import numpy as np
+import malis as m
 
-seg = np.array([0, 1, 1, 1, 2, 2, 0, 5, 5, 5, 5],dtype=np.int32);
-node1 = np.arange(seg.shape[0]-1,dtype=np.int32)
-node2 = np.arange(1,seg.shape[0],dtype=np.int32)
+segTrue = np.array([0, 1, 1, 1, 2, 2, 0, 5, 5, 5, 5],dtype=np.int32);
+node1 = np.arange(segTrue.shape[0]-1,dtype=np.int32)
+node2 = np.arange(1,segTrue.shape[0],dtype=np.int32)
+nVert = segTrue.shape[0]
 edgeWeight = np.array([0, 1, 2, 0, 2, 0, 0, 1, 2, 3],dtype=np.float32);
+print segTrue
+print edgeWeight
 
+nPairPos = m.malis_loss(segTrue, node1, node2, edgeWeight, 1)
+nPairNeg = m.malis_loss(segTrue, node1, node2, edgeWeight, 0)
+print np.vstack((nPairPos,nPairNeg))
+# print nPairNeg
 
-nPairPos = malis_loss(seg, node1, node2, edgeWeight, 1)
-nPairNeg = malis_loss(seg, node1, node2, edgeWeight, 0)
-print nPairPos
-print nPairNeg
+idxkeep = edgeWeight > 0
+cc = m.connected_components(nVert,node1[idxkeep],node2[idxkeep])
+print cc
