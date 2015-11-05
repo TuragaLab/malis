@@ -121,7 +121,9 @@ void connected_components_cpp(const int nVert,
 
     /* union */
     for (int i = 0; i < nEdge; ++i )
-        dsets.union_set(node1[i],node2[i]);
+         // check bounds to make sure the nodes are valid
+        if ((node1[i]>=0) && (node1[i]<nVert) && (node2[i]>=0) && (node2[i]<nVert))
+            dsets.union_set(node1[i],node2[i]);
 
     /* find */
     for (int i = 0; i < nVert; ++i)
