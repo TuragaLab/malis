@@ -52,8 +52,6 @@ void malis_loss_cpp(const int nVert, const int* seg,
 
     unsigned long nPairTot = (nLabeledVert*(nLabeledVert-1))/2;
     unsigned long nPairNeg = nPairTot - nPairPos;
-    unsigned long nPairNorm;
-    if (pos) {nPairNorm = nPairPos;} else {nPairNorm = nPairNeg;}
 
     /* Sort all the edges in increasing order of weight */
     std::vector< int > pqueue( nEdge );
@@ -62,6 +60,8 @@ void malis_loss_cpp(const int nVert, const int* seg,
     	if ((node1[i] >= 0) && (node2[i] >= 0))
 	        pqueue[ j++ ] = i;
     }
+    unsigned long nValidEdge = j;
+    pqueue.resize(nValidEdge);
     sort( pqueue.begin(), pqueue.end(), AffinityGraphCompare<float>( edgeWeight ) );
 
 
