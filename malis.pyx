@@ -2,7 +2,7 @@ import numpy as np
 cimport numpy as np
 
 cdef extern from "malis_cpp.h":
-    void malis_loss_cpp(const int nVert, const int* segTrue,
+    void malis_loss_weights_cpp(const int nVert, const int* segTrue,
                    const int nEdge, const int* node1, const int* node2, const float* edgeWeight,
                    const int pos,
                    int* nPairPerEdge);
@@ -10,7 +10,7 @@ cdef extern from "malis_cpp.h":
                    const int nEdge, const int* node1, const int* node2, const int* edgeWeight,
                    int* seg);
 
-def malis_loss(np.ndarray[np.int32_t,ndim=1] segTrue,
+def malis_loss_weights(np.ndarray[np.int32_t,ndim=1] segTrue,
                 np.ndarray[np.int32_t,ndim=1] node1,
                 np.ndarray[np.int32_t,ndim=1] node2,
                 np.ndarray[np.float32_t,ndim=1] edgeWeight,
@@ -22,7 +22,7 @@ def malis_loss(np.ndarray[np.int32_t,ndim=1] segTrue,
     node2 = np.ascontiguousarray(node2)
     edgeWeight = np.ascontiguousarray(edgeWeight)
     cdef np.ndarray[np.int32_t,ndim=1] nPairPerEdge = np.zeros(edgeWeight.shape[0],dtype=np.int32)
-    malis_loss_cpp(nVert, <int*> &segTrue[0],
+    malis_loss_weights_cpp(nVert, <int*> &segTrue[0],
                    nEdge, <int*> &node1[0], <int*> &node2[0], <float*> &edgeWeight[0],
                    pos,
                    <int*> &nPairPerEdge[0]);
