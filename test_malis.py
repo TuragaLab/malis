@@ -9,8 +9,8 @@ edgeWeight = np.array([0, 1, 2, 0, 2, 0, 0, 1, 2, 3],dtype=np.float32);
 print segTrue
 print edgeWeight
 
-nPairPos = m.malis_loss(segTrue, node1, node2, edgeWeight, 1)
-nPairNeg = m.malis_loss(segTrue, node1, node2, edgeWeight, 0)
+nPairPos = m.malis_loss_weights(segTrue, node1, node2, edgeWeight, 1)
+nPairNeg = m.malis_loss_weights(segTrue, node1, node2, edgeWeight, 0)
 print np.vstack((nPairPos,nPairNeg))
 # print nPairNeg
 
