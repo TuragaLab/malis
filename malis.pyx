@@ -30,7 +30,8 @@ def malis_loss(np.ndarray[np.int32_t,ndim=1] segTrue,
 
 def connected_components(np.int nVert,
                          np.ndarray[np.int32_t,ndim=1] node1,
-                         np.ndarray[np.int32_t,ndim=1] node2):
+                         np.ndarray[np.int32_t,ndim=1] node2,
+                         int sizeThreshold=1):
     cdef int nEdge = node1.shape[0]
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
@@ -38,7 +39,20 @@ def connected_components(np.int nVert,
     connected_components_cpp(nVert,
                              nEdge, <int*> &node1[0], <int*> &node2[0],
                              <int*> &seg[0]);
-    return seg
+    print seg
+    segId,segSizes = np.unique(seg, return_counts=True)
+    descOrder = np.argsort(segSizes)[::-1]
+    renum = np.zeros(segId.max()+1,dtype=np.int32)
+    segId = segId[descOrder]
+    segSizes = segSizes[descOrder]
+    renum[segId] = np.arange(1,len(segId)+1)
+
+    if sizeThreshold>0:
+        renum[segId[segSizes<=sizeThreshold]] = 0
+        segSizes = segSizes[segSizes>sizeThreshold]
+
+    seg = renum[seg]
+    return (seg, segSizes)
 
 
 def nodelist_like(aff,nhood):
@@ -53,3 +67,5 @@ def nodelist_like(aff,nhood):
     #     node2[]
 
     return (node1, node2, aff.ravel())
+
+# def mknhood3d(radius):
