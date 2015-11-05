@@ -109,7 +109,7 @@ void malis_loss_cpp(const int nVert, const int* seg,
 
 
 void connected_components_cpp(const int nVert,
-               const int nEdge, const int* node1, const int* node2,
+               const int nEdge, const int* node1, const int* node2, const int* edgeWeight,
                int* seg){
 
     /* Make disjoint sets */
@@ -122,7 +122,7 @@ void connected_components_cpp(const int nVert,
     /* union */
     for (int i = 0; i < nEdge; ++i )
          // check bounds to make sure the nodes are valid
-        if ((node1[i]>=0) && (node1[i]<nVert) && (node2[i]>=0) && (node2[i]<nVert))
+        if ((edgeWeight[i]!=0) && (node1[i]>=0) && (node1[i]<nVert) && (node2[i]>=0) && (node2[i]<nVert))
             dsets.union_set(node1[i],node2[i]);
 
     /* find */

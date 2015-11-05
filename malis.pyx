@@ -7,7 +7,7 @@ cdef extern from "malis_cpp.h":
                    const int pos,
                    int* nPairPerEdge);
     void connected_components_cpp(const int nVert,
-                   const int nEdge, const int* node1, const int* node2,
+                   const int nEdge, const int* node1, const int* node2, const int* edgeWeight,
                    int* seg);
 
 def malis_loss(np.ndarray[np.int32_t,ndim=1] segTrue,
@@ -31,15 +31,17 @@ def malis_loss(np.ndarray[np.int32_t,ndim=1] segTrue,
 def connected_components(np.int nVert,
                          np.ndarray[np.int32_t,ndim=1] node1,
                          np.ndarray[np.int32_t,ndim=1] node2,
+                         np.ndarray[np.int32_t,ndim=1] edgeWeight,
                          int sizeThreshold=1):
     cdef int nEdge = node1.shape[0]
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
+    edgeWeight = np.ascontiguousarray(edgeWeight)
     cdef np.ndarray[np.int32_t,ndim=1] seg = np.zeros(nVert,dtype=np.int32)
     connected_components_cpp(nVert,
-                             nEdge, <int*> &node1[0], <int*> &node2[0],
+                             nEdge, <int*> &node1[0], <int*> &node2[0], <int*> &edgeWeight[0],
                              <int*> &seg[0]);
-    print seg
+    # renumber the components in descending order by size
     segId,segSizes = np.unique(seg, return_counts=True)
     descOrder = np.argsort(segSizes)[::-1]
     renum = np.zeros(segId.max()+1,dtype=np.int32)

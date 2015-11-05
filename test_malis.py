@@ -14,6 +14,6 @@ nPairNeg = m.malis_loss(segTrue, node1, node2, edgeWeight, 0)
 print np.vstack((nPairPos,nPairNeg))
 # print nPairNeg
 
-idxkeep = edgeWeight > 0
-cc = m.connected_components(nVert,node1[idxkeep],node2[idxkeep])
+idxkeep = (edgeWeight > 0).astype(np.int32)
+cc = m.connected_components(nVert,node1,node2,idxkeep)
 print cc
