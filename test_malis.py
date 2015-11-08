@@ -44,10 +44,15 @@ aff = m.seg_to_affgraph(seg,nhood)
 cc,ccSizes = m.connected_components_affgraph(aff,nhood)
 aff2 = m.seg_to_affgraph(cc,nhood)
 cc2,ccSizes2 = m.connected_components_affgraph(aff2,nhood)
-print aff.shape
-print cc.shape
-hdf5out = h5py.File('/tmp/test.h5','w')
-hdf5out.create_dataset('cc',data=cc)
-hdf5out.create_dataset('cc2',data=cc2)
-hdf5out.create_dataset('aff',data=aff)
-hdf5out.create_dataset('aff2',data=aff2)
+
+print "Comparing 'seg' and 'cc':"
+frac_disagree = np.mean(seg.ravel()!=cc.ravel())
+ri,V_rand,prec,rec = m.rand_index(seg,cc)
+print "Connected components disagree at %f%% locations" % (frac_disagree*100)
+print "\tRand index: %f, V_rand: %f, prec: %f, rec: %f" % (ri,V_rand,prec,rec)
+
+print "Comparing 'cc' and 'cc2':"
+frac_disagree = np.mean(cc.ravel()!=cc2.ravel())
+ri,V_rand,prec,rec = m.rand_index(cc,cc2)
+print "Connected components disagree at %f%% locations" % (frac_disagree*100)
+print "\tRand index: %f, V_rand: %f, prec: %f, rec: %f" % (ri,V_rand,prec,rec)
