@@ -9,6 +9,9 @@ cdef extern from "malis_cpp.h":
     void connected_components_cpp(const int nVert,
                    const int nEdge, const int* node1, const int* node2, const int* edgeWeight,
                    int* seg);
+    void marker_watershed_cpp(const int nVert, const int* marker,
+                   const int nEdge, const int* node1, const int* node2, const float* edgeWeight,
+                   int* seg);
 
 def malis_loss_weights(np.ndarray[np.int32_t,ndim=1] segTrue,
                 np.ndarray[np.int32_t,ndim=1] node1,
@@ -41,6 +44,32 @@ def connected_components(np.int nVert,
     connected_components_cpp(nVert,
                              nEdge, <int*> &node1[0], <int*> &node2[0], <int*> &edgeWeight[0],
                              <int*> &seg[0]);
+    (seg,segSizes) = prune_and_renum(seg,sizeThreshold)
+    return (seg, segSizes)
+
+
+def marker_watershed(np.ndarray[np.int32_t,ndim=1] marker,
+                     np.ndarray[np.int32_t,ndim=1] node1,
+                     np.ndarray[np.int32_t,ndim=1] node2,
+                     np.ndarray[np.float32_t,ndim=1] edgeWeight,
+                     int sizeThreshold=1):
+    cdef int nVert = marker.shape[0]
+    cdef int nEdge = node1.shape[0]
+    marker = np.ascontiguousarray(marker)
+    node1 = np.ascontiguousarray(node1)
+    node2 = np.ascontiguousarray(node2)
+    edgeWeight = np.ascontiguousarray(edgeWeight)
+    cdef np.ndarray[np.int32_t,ndim=1] seg = np.zeros(nVert,dtype=np.int32)
+    marker_watershed_cpp(nVert, <int*> &marker[0],
+                         nEdge, <int*> &node1[0], <int*> &node2[0], <float*> &edgeWeight[0],
+                         <int*> &seg[0]);
+    (seg,segSizes) = prune_and_renum(seg,sizeThreshold)
+    return (seg, segSizes)
+
+
+
+def prune_and_renum(np.ndarray[np.int32_t,ndim=1] seg,
+                    int sizeThreshold=1):
     # renumber the components in descending order by size
     segId,segSizes = np.unique(seg, return_counts=True)
     descOrder = np.argsort(segSizes)[::-1]
@@ -57,17 +86,65 @@ def connected_components(np.int nVert,
     return (seg, segSizes)
 
 
-def nodelist_like(aff,nhood):
-    # constructs the node lists corresponding to the edge list representation of an affinity graph
+def seg_to_affgraph(seg,nhood):
+    # constructs an affinity graph from a segmentation
     # assume affinity graph is represented as:
-    # aff.shape = (edges, z, y, x)
-    nodes = np.arange(np.prod(aff.shape[1:]),dtype=np.int32).reshape(aff.shape[1:])
-    node1 = np.tile(nodes,(aff.shape[0],1,1,1))
-    node2 = np.zeros_like(aff,dtype=np.int32).fill(-1)
+    # shape = (e, z, y, x)
+    # nhood.shape = (edges, 3)
+    shape = seg.shape
+    nEdge = nhood.shape[0]
+    aff = np.zeros((nEdge,)+shape,dtype=np.int32)
 
-    # for e in range(nhood.shape[0]):
-    #     node2[]
+    for e in range(nEdge):
+        aff[e, \
+            max(0,-nhood[e,0]):min(shape[0],shape[0]-nhood[e,0]), \
+            max(0,-nhood[e,1]):min(shape[1],shape[1]-nhood[e,1]), \
+            max(0,-nhood[e,2]):min(shape[2],shape[2]-nhood[e,2])] = \
+                        (seg[max(0,-nhood[e,0]):min(shape[0],shape[0]-nhood[e,0]), \
+                            max(0,-nhood[e,1]):min(shape[1],shape[1]-nhood[e,1]), \
+                            max(0,-nhood[e,2]):min(shape[2],shape[2]-nhood[e,2])] == \
+                         seg[max(0,nhood[e,0]):min(shape[0],shape[0]+nhood[e,0]), \
+                            max(0,nhood[e,1]):min(shape[1],shape[1]+nhood[e,1]), \
+                            max(0,nhood[e,2]):min(shape[2],shape[2]+nhood[e,2])] ) \
+                        * ( seg[max(0,-nhood[e,0]):min(shape[0],shape[0]-nhood[e,0]), \
+                            max(0,-nhood[e,1]):min(shape[1],shape[1]-nhood[e,1]), \
+                            max(0,-nhood[e,2]):min(shape[2],shape[2]-nhood[e,2])] > 0 ) \
+                        * ( seg[max(0,nhood[e,0]):min(shape[0],shape[0]+nhood[e,0]), \
+                            max(0,nhood[e,1]):min(shape[1],shape[1]+nhood[e,1]), \
+                            max(0,nhood[e,2]):min(shape[2],shape[2]+nhood[e,2])] > 0 )
 
-    return (node1, node2, aff.ravel())
+    return aff
 
-# def mknhood3d(radius):
+def nodelist_like(shape,nhood):
+    # constructs the node lists corresponding to the edge list representation of an affinity graph
+    # assume  node shape is represented as:
+    # shape = (z, y, x)
+    # nhood.shape = (edges, 3)
+    nEdge = nhood.shape[0]
+    nodes = np.arange(np.prod(shape),dtype=np.int32).reshape(shape)
+    node1 = np.tile(nodes,(nEdge,1,1,1))
+    node2 = np.full(node1.shape,-1,dtype=np.int32)
+
+    for e in range(nEdge):
+        node2[e, \
+            max(0,-nhood[e,0]):min(shape[0],shape[0]-nhood[e,0]), \
+            max(0,-nhood[e,1]):min(shape[1],shape[1]-nhood[e,1]), \
+            max(0,-nhood[e,2]):min(shape[2],shape[2]-nhood[e,2])] = \
+                nodes[max(0,nhood[e,0]):min(shape[0],shape[0]+nhood[e,0]), \
+                     max(0,nhood[e,1]):min(shape[1],shape[1]+nhood[e,1]), \
+                     max(0,nhood[e,2]):min(shape[2],shape[2]+nhood[e,2])]
+
+    return (node1, node2)
+
+
+def affgraph_to_edgelist(aff,nhood):
+    node1,node2 = nodelist_like(aff.shape[1:],nhood)
+    return (node1.ravel(),node2.ravel(),aff.ravel())
+
+def connected_components_affgraph(aff,nhood):
+    (node1,node2,edge) = affgraph_to_edgelist(aff,nhood)
+    (seg,segSizes) = connected_components(np.prod(aff.shape[1:]),node1,node2,edge)
+    seg.reshape(aff.shape[1:])
+    return (seg,segSizes)
+
+# def mknhood3d(radius,scale=(1,)*3):
