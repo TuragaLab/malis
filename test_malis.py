@@ -26,20 +26,22 @@ print cc
 # print node1
 # print node2
 
-hdf5_raw_file = '/groups/turaga/turagalab/greentea/project_data/dataset_06/fibsem_medulla_7col/trvol-250-1-h5/img_normalized.h5'
-hdf5_gt_file = '/groups/turaga/turagalab/greentea/project_data/dataset_06/fibsem_medulla_7col/trvol-250-1-h5/groundtruth_seg.h5'
-hdf5_aff_file = '/groups/turaga/turagalab/greentea/project_data/dataset_06/fibsem_medulla_7col/trvol-250-1-h5/groundtruth_aff.h5'
+datadir = '/groups/turaga/turagalab/greentea/project_data/dataset_06/fibsem_medulla_7col/trvol-250-1-h5/'
+print "Reading test volume from " + datadir
+# hdf5_raw_file = datadir + 'img_normalized.h5'
+hdf5_gt_file = datadir + 'groundtruth_seg.h5'
+# hdf5_aff_file = datadir + 'groundtruth_aff.h5'
 
 #hdf5_raw_file = 'zebrafish_friedrich/raw.hdf5'
 #hdf5_gt_file = 'zebrafish_friedrich/labels_2.hdf5'
 
 
-hdf5_raw = h5py.File(hdf5_raw_file, 'r')
-hdf5_gt = h5py.File(hdf5_gt_file, 'r')
-hdf5_aff = h5py.File(hdf5_aff_file, 'r')
+# hdf5_raw = h5py.File(hdf5_raw_file, 'r')
+h5seg = h5py.File(hdf5_gt_file, 'r')
+# hdf5_aff = h5py.File(hdf5_aff_file, 'r')
 
 nhood = -np.eye(3)
-seg = np.asarray(hdf5_gt['main']).astype(np.int32)
+seg = np.asarray(h5seg['main']).astype(np.int32)
 aff = m.seg_to_affgraph(seg,nhood)
 cc,ccSizes = m.connected_components_affgraph(aff,nhood)
 aff2 = m.seg_to_affgraph(cc,nhood)
@@ -47,12 +49,16 @@ cc2,ccSizes2 = m.connected_components_affgraph(aff2,nhood)
 
 print "Comparing 'seg' and 'cc':"
 frac_disagree = np.mean(seg.ravel()!=cc.ravel())
-ri,V_rand,prec,rec = m.rand_index(seg,cc)
+ri,fscore,prec,rec = m.rand_index(seg,cc)
+V_rand,V_rand_split,V_rand_merge = m.compute_V_rand_N2(seg,cc)
 print "Connected components disagree at %f%% locations" % (frac_disagree*100)
-print "\tRand index: %f, V_rand: %f, prec: %f, rec: %f" % (ri,V_rand,prec,rec)
+print "\tRand index: %f, fscore: %f, prec: %f, rec: %f" % (ri,fscore,prec,rec)
+print "\tV_rand: %f, V_rand_split: %f, V_rand_merge: %f" % (V_rand,V_rand_split,V_rand_merge)
 
 print "Comparing 'cc' and 'cc2':"
 frac_disagree = np.mean(cc.ravel()!=cc2.ravel())
-ri,V_rand,prec,rec = m.rand_index(cc,cc2)
+ri,fscore,V_rand,prec,rec = m.rand_index(cc,cc2)
+V_rand,V_rand_split,V_rand_merge = m.compute_V_rand_N2(cc,cc2)
 print "Connected components disagree at %f%% locations" % (frac_disagree*100)
-print "\tRand index: %f, V_rand: %f, prec: %f, rec: %f" % (ri,V_rand,prec,rec)
+print "\tRand index: %f, fscore: %f, prec: %f, rec: %f" % (ri,fscore,prec,rec)
+print "\tV_rand: %f, V_rand_split: %f, V_rand_merge: %f" % (V_rand,V_rand_split,V_rand_merge)

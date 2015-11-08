@@ -1,6 +1,7 @@
 import numpy as np
 cimport numpy as np
 from scipy.misc import comb
+import scipy.sparse
 
 cdef extern from "malis_cpp.h":
     void malis_loss_weights_cpp(const int nVert, const int* segTrue,
@@ -148,6 +149,24 @@ def connected_components_affgraph(aff,nhood):
     seg = seg.reshape(aff.shape[1:])
     return (seg,segSizes)
 
+def compute_V_rand_N2(segTrue,segEst):
+    segTrue = segTrue.ravel()
+    segEst = segEst.ravel()
+    idx = segTrue != 0
+    segTrue = segTrue[idx]
+    segEst = segEst[idx]
+
+    cont_table = scipy.sparse.coo_matrix((np.ones(segTrue.shape),(segTrue,segEst))).toarray()
+    P = cont_table/cont_table.sum()
+    t = P.sum(axis=0)
+    s = P.sum(axis=1)
+
+    V_rand_split = (P**2).sum() / (t**2).sum()
+    V_rand_merge = (P**2).sum() / (s**2).sum()
+    V_rand = 2*(P**2).sum() / ((t**2).sum()+(s**2).sum())
+
+    return (V_rand,V_rand_split,V_rand_merge)
+
 def rand_index(segTrue,segEst):
     segTrue = segTrue.ravel()
     segEst = segEst.ravel()
@@ -166,7 +185,7 @@ def rand_index(segTrue,segEst):
     ri = (tp + tn) / (tp + fp + fn + tn)
     prec = tp/(tp+fp)
     rec = tp/(tp+fn)
-    V_rand = 2*prec*rec/(prec+rec)
-    return (ri,V_rand,prec,rec)
+    fscore = 2*prec*rec/(prec+rec)
+    return (ri,fscore,prec,rec)
 
 # def mknhood3d(radius,scale=(1,)*3):
