@@ -25,3 +25,29 @@ print cc
 # node1, node2 = m.nodelist_like((2,3,4),-np.eye(3))
 # print node1
 # print node2
+
+hdf5_raw_file = '/groups/turaga/turagalab/greentea/project_data/dataset_06/fibsem_medulla_7col/trvol-250-1-h5/img_normalized.h5'
+hdf5_gt_file = '/groups/turaga/turagalab/greentea/project_data/dataset_06/fibsem_medulla_7col/trvol-250-1-h5/groundtruth_seg.h5'
+hdf5_aff_file = '/groups/turaga/turagalab/greentea/project_data/dataset_06/fibsem_medulla_7col/trvol-250-1-h5/groundtruth_aff.h5'
+
+#hdf5_raw_file = 'zebrafish_friedrich/raw.hdf5'
+#hdf5_gt_file = 'zebrafish_friedrich/labels_2.hdf5'
+
+
+hdf5_raw = h5py.File(hdf5_raw_file, 'r')
+hdf5_gt = h5py.File(hdf5_gt_file, 'r')
+hdf5_aff = h5py.File(hdf5_aff_file, 'r')
+
+nhood = -np.eye(3)
+seg = np.asarray(hdf5_gt['main']).astype(np.int32)
+aff = m.seg_to_affgraph(seg,nhood)
+cc,ccSizes = m.connected_components_affgraph(aff,nhood)
+aff2 = m.seg_to_affgraph(cc,nhood)
+cc2,ccSizes2 = m.connected_components_affgraph(aff2,nhood)
+print aff.shape
+print cc.shape
+hdf5out = h5py.File('/tmp/test.h5','w')
+hdf5out.create_dataset('cc',data=cc)
+hdf5out.create_dataset('cc2',data=cc2)
+hdf5out.create_dataset('aff',data=aff)
+hdf5out.create_dataset('aff2',data=aff2)

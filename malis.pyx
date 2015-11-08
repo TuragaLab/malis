@@ -143,8 +143,8 @@ def affgraph_to_edgelist(aff,nhood):
 
 def connected_components_affgraph(aff,nhood):
     (node1,node2,edge) = affgraph_to_edgelist(aff,nhood)
-    (seg,segSizes) = connected_components(np.prod(aff.shape[1:]),node1,node2,edge)
-    seg.reshape(aff.shape[1:])
+    (seg,segSizes) = connected_components(int(np.prod(aff.shape[1:])),node1,node2,edge)
+    seg = seg.reshape(aff.shape[1:])
     return (seg,segSizes)
 
 # def mknhood3d(radius,scale=(1,)*3):
