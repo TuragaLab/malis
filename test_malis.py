@@ -57,7 +57,7 @@ print "\tV_rand: %f, V_rand_split: %f, V_rand_merge: %f" % (V_rand,V_rand_split,
 
 print "Comparing 'cc' and 'cc2':"
 frac_disagree = np.mean(cc.ravel()!=cc2.ravel())
-ri,fscore,V_rand,prec,rec = m.rand_index(cc,cc2)
+ri,fscore,prec,rec = m.rand_index(cc,cc2)
 V_rand,V_rand_split,V_rand_merge = m.compute_V_rand_N2(cc,cc2)
 print "Connected components disagree at %f%% locations" % (frac_disagree*100)
 print "\tRand index: %f, fscore: %f, prec: %f, rec: %f" % (ri,fscore,prec,rec)
