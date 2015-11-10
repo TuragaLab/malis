@@ -235,7 +235,7 @@ def mknhood2d(radius=1):
     zeroIdx = np.ceil(len(i)/2).astype(np.int32);
 
     nhood = np.vstack((i[:zeroIdx],j[:zeroIdx])).T.astype(np.int32)
-    return np.ascontiguousarray(nhood)
+    return np.ascontiguousarray(np.flipud(nhood))
 
 def mknhood3d(radius=1):
     # Makes nhood structures for some most used dense graphs.
@@ -255,7 +255,7 @@ def mknhood3d(radius=1):
     zeroIdx = np.ceil(len(i)/2).astype(np.int32);
 
     nhood = np.vstack((k[:zeroIdx],i[:zeroIdx],j[:zeroIdx])).T.astype(np.int32)
-    return np.ascontiguousarray(nhood)
+    return np.ascontiguousarray(np.flipud(nhood))
 
 def mknhood3d_aniso(radiusxy=1,radiusxy_zminus1=1.8):
     # Makes nhood structures for some most used dense graphs.
