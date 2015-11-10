@@ -3,6 +3,17 @@ import malis as m
 import h5py
 np.set_printoptions(precision=4)
 
+print "Can we make the `nhood' for an isotropic 3d dataset"
+print "corresponding to a 6-connected neighborhood?"
+nhood = m.mknhood3d(1)
+print nhood
+
+print "Can we make the `nhood' for an anisotropic 3d dataset"
+print "corresponding to a 4-connected neighborhood in-plane"
+print "and 26-connected neighborhood in the previous z-plane?"
+nhood2 = m.mknhood3d_aniso(1,1.8)
+print nhood2
+
 segTrue = np.array([0, 1, 1, 1, 2, 2, 0, 5, 5, 5, 5],dtype=np.int32);
 node1 = np.arange(segTrue.shape[0]-1,dtype=np.int32)
 node2 = np.arange(1,segTrue.shape[0],dtype=np.int32)
@@ -40,7 +51,6 @@ hdf5_gt_file = datadir + 'groundtruth_seg.h5'
 h5seg = h5py.File(hdf5_gt_file, 'r')
 # hdf5_aff = h5py.File(hdf5_aff_file, 'r')
 
-nhood = -np.eye(3)
 seg = np.asarray(h5seg['main']).astype(np.int32)
 aff = m.seg_to_affgraph(seg,nhood)
 cc,ccSizes = m.connected_components_affgraph(aff,nhood)
