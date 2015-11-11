@@ -1,1 +1,1 @@
-from malis import all
+from malis import *
