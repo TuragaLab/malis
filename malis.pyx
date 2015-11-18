@@ -15,10 +15,10 @@ cdef extern from "malis_cpp.h":
                    const int nEdge, const int* node1, const int* node2, const float* edgeWeight,
                    int* seg);
 
-def malis_loss_weights(np.ndarray[np.int32_t,ndim=1] segTrue,
-                np.ndarray[np.int32_t,ndim=1] node1,
-                np.ndarray[np.int32_t,ndim=1] node2,
-                np.ndarray[np.float32_t,ndim=1] edgeWeight,
+def malis_loss_weights(np.ndarray[int, ndim=1] segTrue,
+                np.ndarray[int, ndim=1] node1,
+                np.ndarray[int, ndim=1] node2,
+                np.ndarray[float, ndim=1] edgeWeight,
                 np.int pos):
     cdef int nVert = segTrue.shape[0]
     cdef int nEdge = node1.shape[0]
@@ -26,11 +26,11 @@ def malis_loss_weights(np.ndarray[np.int32_t,ndim=1] segTrue,
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
     edgeWeight = np.ascontiguousarray(edgeWeight)
-    cdef np.ndarray[np.int32_t,ndim=1] nPairPerEdge = np.zeros(edgeWeight.shape[0],dtype=np.int32)
-    malis_loss_weights_cpp(nVert, <int*> &segTrue[0],
-                   nEdge, <int*> &node1[0], <int*> &node2[0], <float*> &edgeWeight[0],
+    cdef np.ndarray[int, ndim=1] nPairPerEdge = np.zeros(edgeWeight.shape[0],dtype=np.int32)
+    malis_loss_weights_cpp(nVert, &segTrue[0],
+                   nEdge, &node1[0], &node2[0], &edgeWeight[0],
                    pos,
-                   <int*> &nPairPerEdge[0]);
+                   &nPairPerEdge[0]);
     return nPairPerEdge
 
 def connected_components(np.int nVert,
