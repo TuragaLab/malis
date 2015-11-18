@@ -19,7 +19,7 @@ def malis_loss_weights(np.ndarray[int, ndim=1] segTrue,
                 np.ndarray[int, ndim=1] node1,
                 np.ndarray[int, ndim=1] node2,
                 np.ndarray[float, ndim=1] edgeWeight,
-                np.int pos):
+                int pos):
     cdef int nVert = segTrue.shape[0]
     cdef int nEdge = node1.shape[0]
     segTrue = np.ascontiguousarray(segTrue)
@@ -33,27 +33,28 @@ def malis_loss_weights(np.ndarray[int, ndim=1] segTrue,
                    &nPairPerEdge[0]);
     return nPairPerEdge
 
-def connected_components(np.int nVert,
-                         np.ndarray[np.int32_t,ndim=1] node1,
-                         np.ndarray[np.int32_t,ndim=1] node2,
-                         np.ndarray[np.int32_t,ndim=1] edgeWeight,
+
+def connected_components(int nVert,
+                         np.ndarray[int,ndim=1] node1,
+                         np.ndarray[int,ndim=1] node2,
+                         np.ndarray[int,ndim=1] edgeWeight,
                          int sizeThreshold=1):
     cdef int nEdge = node1.shape[0]
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
     edgeWeight = np.ascontiguousarray(edgeWeight)
-    cdef np.ndarray[np.int32_t,ndim=1] seg = np.zeros(nVert,dtype=np.int32)
+    cdef np.ndarray[int,ndim=1] seg = np.zeros(nVert,dtype=np.int32)
     connected_components_cpp(nVert,
-                             nEdge, <int*> &node1[0], <int*> &node2[0], <int*> &edgeWeight[0],
-                             <int*> &seg[0]);
+                             nEdge, &node1[0], &node2[0], &edgeWeight[0],
+                             &seg[0]);
     (seg,segSizes) = prune_and_renum(seg,sizeThreshold)
     return (seg, segSizes)
 
 
-def marker_watershed(np.ndarray[np.int32_t,ndim=1] marker,
-                     np.ndarray[np.int32_t,ndim=1] node1,
-                     np.ndarray[np.int32_t,ndim=1] node2,
-                     np.ndarray[np.float32_t,ndim=1] edgeWeight,
+def marker_watershed(np.ndarray[int,ndim=1] marker,
+                     np.ndarray[int,ndim=1] node1,
+                     np.ndarray[int,ndim=1] node2,
+                     np.ndarray[float,ndim=1] edgeWeight,
                      int sizeThreshold=1):
     cdef int nVert = marker.shape[0]
     cdef int nEdge = node1.shape[0]
@@ -62,15 +63,15 @@ def marker_watershed(np.ndarray[np.int32_t,ndim=1] marker,
     node2 = np.ascontiguousarray(node2)
     edgeWeight = np.ascontiguousarray(edgeWeight)
     cdef np.ndarray[np.int32_t,ndim=1] seg = np.zeros(nVert,dtype=np.int32)
-    marker_watershed_cpp(nVert, <int*> &marker[0],
-                         nEdge, <int*> &node1[0], <int*> &node2[0], <float*> &edgeWeight[0],
-                         <int*> &seg[0]);
+    marker_watershed_cpp(nVert, &marker[0],
+                         nEdge, &node1[0], &node2[0], &edgeWeight[0],
+                         &seg[0]);
     (seg,segSizes) = prune_and_renum(seg,sizeThreshold)
     return (seg, segSizes)
 
 
 
-def prune_and_renum(np.ndarray[np.int32_t,ndim=1] seg,
+def prune_and_renum(np.ndarray[int,ndim=1] seg,
                     int sizeThreshold=1):
     # renumber the components in descending order by size
     segId,segSizes = np.unique(seg, return_counts=True)
@@ -182,6 +183,10 @@ def connected_components_affgraph(aff,nhood):
     (seg,segSizes) = connected_components(int(np.prod(aff.shape[1:])),node1,node2,edge)
     seg = seg.reshape(aff.shape[1:])
     return (seg,segSizes)
+
+def mk_cont_table(seg1,seg2):
+    cont_table = scipy.sparse.coo_matrix((np.ones(seg1.shape),(seg1,seg2))).toarray()
+    return cont_table
 
 def compute_V_rand_N2(segTrue,segEst):
     segTrue = segTrue.ravel()

@@ -1,8 +1,9 @@
 import numpy as np
-import malis as m
 import h5py
 import datetime
 np.set_printoptions(precision=4)
+import malis as m
+
 
 print "Can we make the `nhood' for an isotropic 3d dataset"
 print "corresponding to a 6-connected neighborhood?"
