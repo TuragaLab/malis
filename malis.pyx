@@ -62,7 +62,7 @@ def marker_watershed(np.ndarray[int,ndim=1] marker,
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
     edgeWeight = np.ascontiguousarray(edgeWeight)
-    cdef np.ndarray[np.int32_t,ndim=1] seg = np.zeros(nVert,dtype=np.int32)
+    cdef np.ndarray[int,ndim=1] seg = np.zeros(nVert,dtype=np.int32)
     marker_watershed_cpp(nVert, &marker[0],
                          nEdge, &node1[0], &node2[0], &edgeWeight[0],
                          &seg[0]);
