@@ -169,11 +169,12 @@ void marker_watershed_cpp(const int nVert, const int* marker,
     sort( pqueue.begin(), pqueue.end(), AffinityGraphCompare<float>( edgeWeight ) );
 
     /* Start MST */
+	int e;
     int set1, set2, label_of_set1, label_of_set2;
     for (unsigned int i = 0; i < pqueue.size(); ++i ) {
-
-        set1=dsets.find_set(node1[i]);
-        set2=dsets.find_set(node2[i]);
+		e = pqueue[i];
+        set1=dsets.find_set(node1[e]);
+        set2=dsets.find_set(node2[e]);
         label_of_set1 = seg[set1];
         label_of_set2 = seg[set2];
 

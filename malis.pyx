@@ -253,7 +253,7 @@ def mknhood3d(radius=1):
     x = np.arange(-ceilrad,ceilrad+1,1)
     y = np.arange(-ceilrad,ceilrad+1,1)
     z = np.arange(-ceilrad,ceilrad+1,1)
-    [i,j,k] = np.meshgrid(z,y,z)
+    [i,j,k] = np.meshgrid(z,y,x)
 
     idxkeep = (i**2+j**2+k**2)<=radius**2
     i=i[idxkeep].ravel(); j=j[idxkeep].ravel(); k=k[idxkeep].ravel();
