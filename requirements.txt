@@ -1,0 +1,7 @@
+# runtime
+Cython>=0.24
+numpy>=1.9
+scipy  # unknown minimum version...
+
+# tests
+h5py
