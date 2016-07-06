@@ -2,6 +2,7 @@
 
 #### Installation
 - pip install malis	
+- build from source: ./make.sh
 
 #### Structured loss function for supervised learning of segmentation and clustering
 
