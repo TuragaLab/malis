@@ -1,0 +1,4 @@
+include README.md
+recursive-include malis *.h
+recursive-include malis *.pyx
+include malis/malis_cpp.cpp

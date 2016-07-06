@@ -1,3 +1,5 @@
 build
-malis.cpp
-malis.so
+*egg*
+dist
+*.pyc
+
