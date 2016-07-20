@@ -130,7 +130,7 @@ def seg_to_affgraph(seg,nhood):
     # nhood.shape = (edges, 3)
     shape = seg.shape
     nEdge = nhood.shape[0]
-    aff = np.zeros((nEdge,)+shape,dtype=np.int32)
+    aff = np.zeros((nEdge,)+shape,dtype=np.float32)
 
     for e in range(nEdge):
         aff[e, \
