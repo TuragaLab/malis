@@ -2,4 +2,5 @@ build
 *egg*
 dist
 *.pyc
-
+malis/malis.cpp
+malis/malis.so
