@@ -28,7 +28,7 @@ class build_ext(_build_ext):
         self.include_dirs.append(numpy.get_include())
 
 setup(name='malis',
-      version='0.0',
+      version='1.0',
       description='MALIS segmentation loss function',
       url='https://github.com/TuragaLab/malis',
       author='Srinivas Turaga',
