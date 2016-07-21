@@ -30,7 +30,7 @@ nPairNeg = m.malis_loss_weights(segTrue, node1, node2, edgeWeight, 0)
 print np.vstack((nPairPos,nPairNeg))
 # print nPairNeg
 
-'''
+
 
 idxkeep = (edgeWeight > 0).astype(np.int32)
 cc = m.connected_components(nVert,node1,node2,idxkeep)
@@ -80,5 +80,4 @@ print "[" +str(datetime.datetime.now())+"]" + "Comparing 'cc' and 'cc2':"
 V_rand,V_rand_split,V_rand_merge = m.compute_V_rand_N2(cc,cc2)
 print "[" +str(datetime.datetime.now())+"]" + "\tV_rand: %f, V_rand_split: %f, V_rand_merge: %f" % (V_rand,V_rand_split,V_rand_merge)
 
-'''
 

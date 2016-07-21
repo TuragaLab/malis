@@ -32,7 +32,7 @@ class AffinityGraphCompare{
 void malis_loss_weights_cpp(const int nVert, const uint64_t* seg,
                const int nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
                const int pos,
-               int* nPairPerEdge){
+               uint64_t* nPairPerEdge){
 
 
     /* Disjoint sets and sparse overlap vectors */
@@ -112,13 +112,13 @@ void malis_loss_weights_cpp(const int nVert, const uint64_t* seg,
 
 
 void connected_components_cpp(const int nVert,
-               const int nEdge, const int* node1, const int* node2, const int* edgeWeight,
-               int* seg){
+               const int nEdge, const uint64_t* node1, const uint64_t* node2, const int* edgeWeight,
+               uint64_t* seg){
 
     /* Make disjoint sets */
-    vector<int> rank(nVert);
-    vector<int> parent(nVert);
-    boost::disjoint_sets<int*, int*> dsets(&rank[0],&parent[0]);
+    vector<uint64_t> rank(nVert);
+    vector<uint64_t> parent(nVert);
+    boost::disjoint_sets<uint64_t*, uint64_t*> dsets(&rank[0],&parent[0]);
     for (int i=0; i<nVert; ++i)
         dsets.make_set(i);
 
@@ -134,27 +134,27 @@ void connected_components_cpp(const int nVert,
 }
 
 
-void marker_watershed_cpp(const int nVert, const int* marker,
-               const int nEdge, const int* node1, const int* node2, const float* edgeWeight,
-               int* seg){
+void marker_watershed_cpp(const int nVert, const uint64_t* marker,
+               const int nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
+               uint64_t* seg){
 
     /* Make disjoint sets */
-    vector<int> rank(nVert);
-    vector<int> parent(nVert);
-    boost::disjoint_sets<int*, int*> dsets(&rank[0],&parent[0]);
-    for (int i=0; i<nVert; ++i)
+    vector<uint64_t> rank(nVert);
+    vector<uint64_t> parent(nVert);
+    boost::disjoint_sets<uint64_t*, uint64_t*> dsets(&rank[0],&parent[0]);
+    for (uint64_t i=0; i<nVert; ++i)
         dsets.make_set(i);
 
     /* initialize output array and find representatives of each class */
-    std::map<int,int> components;
-    for (int i=0; i<nVert; ++i){
+    std::map<uint64_t,uint64_t> components;
+    for (uint64_t i=0; i<nVert; ++i){
         seg[i] = marker[i];
         if (seg[i] > 0)
             components[seg[i]] = i;
     }
 
     // merge vertices labeled with the same marker
-    for (int i=0; i<nVert; ++i)
+    for (uint64_t i=0; i<nVert; ++i)
         if (seg[i] > 0)
             dsets.union_set(components[seg[i]],i);
 

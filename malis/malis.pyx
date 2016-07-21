@@ -8,13 +8,13 @@ cdef extern from "malis_cpp.h":
     void malis_loss_weights_cpp(const int nVert, const uint64_t* segTrue,
                    const int nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
                    const int pos,
-                   int* nPairPerEdge);
+                   uint64_t* nPairPerEdge);
     void connected_components_cpp(const int nVert,
-                   const int nEdge, const int* node1, const int* node2, const int* edgeWeight,
-                   int* seg);
-    void marker_watershed_cpp(const int nVert, const int* marker,
-                   const int nEdge, const int* node1, const int* node2, const float* edgeWeight,
-                   int* seg);
+                   const int nEdge, const uint64_t* node1, const uint64_t* node2, const int* edgeWeight,
+                   uint64_t* seg);
+    void marker_watershed_cpp(const int nVert, const uint64_t* marker,
+                   const int nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
+                   uint64_t* seg);
 
 def malis_loss_weights(np.ndarray[uint64_t, ndim=1] segTrue,
                 np.ndarray[uint64_t, ndim=1] node1,
@@ -27,7 +27,7 @@ def malis_loss_weights(np.ndarray[uint64_t, ndim=1] segTrue,
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
     edgeWeight = np.ascontiguousarray(edgeWeight)
-    cdef np.ndarray[int, ndim=1] nPairPerEdge = np.zeros(edgeWeight.shape[0],dtype=np.int32)
+    cdef np.ndarray[uint64_t, ndim=1] nPairPerEdge = np.zeros(edgeWeight.shape[0],dtype=np.uint64)
     malis_loss_weights_cpp(nVert, &segTrue[0],
                    nEdge, &node1[0], &node2[0], &edgeWeight[0],
                    pos,
@@ -36,15 +36,15 @@ def malis_loss_weights(np.ndarray[uint64_t, ndim=1] segTrue,
 
 
 def connected_components(int nVert,
-                         np.ndarray[int,ndim=1] node1,
-                         np.ndarray[int,ndim=1] node2,
+                         np.ndarray[uint64_t,ndim=1] node1,
+                         np.ndarray[uint64_t,ndim=1] node2,
                          np.ndarray[int,ndim=1] edgeWeight,
                          int sizeThreshold=1):
     cdef int nEdge = node1.shape[0]
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
     edgeWeight = np.ascontiguousarray(edgeWeight)
-    cdef np.ndarray[int,ndim=1] seg = np.zeros(nVert,dtype=np.int32)
+    cdef np.ndarray[uint64_t,ndim=1] seg = np.zeros(nVert,dtype=np.uint64)
     connected_components_cpp(nVert,
                              nEdge, &node1[0], &node2[0], &edgeWeight[0],
                              &seg[0]);
@@ -52,9 +52,9 @@ def connected_components(int nVert,
     return (seg, segSizes)
 
 
-def marker_watershed(np.ndarray[int,ndim=1] marker,
-                     np.ndarray[int,ndim=1] node1,
-                     np.ndarray[int,ndim=1] node2,
+def marker_watershed(np.ndarray[uint64_t,ndim=1] marker,
+                     np.ndarray[uint64_t,ndim=1] node1,
+                     np.ndarray[uint64_t,ndim=1] node2,
                      np.ndarray[float,ndim=1] edgeWeight,
                      int sizeThreshold=1):
     cdef int nVert = marker.shape[0]
@@ -63,7 +63,7 @@ def marker_watershed(np.ndarray[int,ndim=1] marker,
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
     edgeWeight = np.ascontiguousarray(edgeWeight)
-    cdef np.ndarray[int,ndim=1] seg = np.zeros(nVert,dtype=np.int32)
+    cdef np.ndarray[uint64_t,ndim=1] seg = np.zeros(nVert,dtype=np.uint64)
     marker_watershed_cpp(nVert, &marker[0],
                          nEdge, &node1[0], &node2[0], &edgeWeight[0],
                          &seg[0]);
@@ -72,12 +72,12 @@ def marker_watershed(np.ndarray[int,ndim=1] marker,
 
 
 
-def prune_and_renum(np.ndarray[int,ndim=1] seg,
+def prune_and_renum(np.ndarray[uint64_t,ndim=1] seg,
                     int sizeThreshold=1):
     # renumber the components in descending order by size
     segId,segSizes = np.unique(seg, return_counts=True)
     descOrder = np.argsort(segSizes)[::-1]
-    renum = np.zeros(segId.max()+1,dtype=np.int32)
+    renum = np.zeros(segId.max()+1,dtype=np.uint64)
     segId = segId[descOrder]
     segSizes = segSizes[descOrder]
     renum[segId] = np.arange(1,len(segId)+1)
@@ -131,7 +131,7 @@ def seg_to_affgraph(seg,nhood):
     # nhood.shape = (edges, 3)
     shape = seg.shape
     nEdge = nhood.shape[0]
-    aff = np.zeros((nEdge,)+shape,dtype=np.float32)
+    aff = np.zeros((nEdge,)+shape,dtype=np.int32)
 
     for e in range(nEdge):
         aff[e, \
@@ -159,9 +159,9 @@ def nodelist_like(shape,nhood):
     # shape = (z, y, x)
     # nhood.shape = (edges, 3)
     nEdge = nhood.shape[0]
-    nodes = np.arange(np.prod(shape),dtype=np.int32).reshape(shape)
+    nodes = np.arange(np.prod(shape),dtype=np.uint64).reshape(shape)
     node1 = np.tile(nodes,(nEdge,1,1,1))
-    node2 = np.full(node1.shape,-1,dtype=np.int32)
+    node2 = np.full(node1.shape,-1,dtype=np.uint64)
 
     for e in range(nEdge):
         node2[e, \

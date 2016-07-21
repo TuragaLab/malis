@@ -2,15 +2,15 @@
 #define MALIS_CPP_H
 
 void connected_components_cpp(const int nVert,
-               const int nEdge, const int* node1, const int* node2, const int* edgeWeight,
-               int* seg);
+               const int nEdge, const uint64_t* node1, const uint64_t* node2, const int* edgeWeight,
+               uint64_t* seg);
 
 void malis_loss_weights_cpp(const int nVert, const uint64_t* seg,
                const int nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
                const int pos,
-               int* nPairPerEdge);
+               uint64_t* nPairPerEdge);
 
-void marker_watershed_cpp(const int nVert, const int* marker,
-               const int nEdge, const int* node1, const int* node2, const float* edgeWeight,
-               int* seg);
+void marker_watershed_cpp(const int nVert, const uint64_t* marker,
+               const int nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
+               uint64_t* seg);
 #endif
