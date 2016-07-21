@@ -16,9 +16,9 @@ print "and 26-connected neighborhood in the previous z-plane?"
 nhood = m.mknhood3d_aniso(1,1.8)
 print nhood
 
-segTrue = np.array([0, 1, 1, 1, 2, 2, 0, 5, 5, 5, 5],dtype=np.int32);
-node1 = np.arange(segTrue.shape[0]-1,dtype=np.int32)
-node2 = np.arange(1,segTrue.shape[0],dtype=np.int32)
+segTrue = np.array([0, 1, 1, 1, 2, 2, 0, 5, 5, 5, 5],dtype=np.uint64);
+node1 = np.arange(segTrue.shape[0]-1,dtype=np.uint64)
+node2 = np.arange(1,segTrue.shape[0],dtype=np.uint64)
 nVert = segTrue.shape[0]
 edgeWeight = np.array([0, 1, 2, 0, 2, 0, 0, 1, 2, 2.5],dtype=np.float32);
 edgeWeight = edgeWeight/edgeWeight.max()
@@ -29,6 +29,8 @@ nPairPos = m.malis_loss_weights(segTrue, node1, node2, edgeWeight, 1)
 nPairNeg = m.malis_loss_weights(segTrue, node1, node2, edgeWeight, 0)
 print np.vstack((nPairPos,nPairNeg))
 # print nPairNeg
+
+'''
 
 idxkeep = (edgeWeight > 0).astype(np.int32)
 cc = m.connected_components(nVert,node1,node2,idxkeep)
@@ -77,4 +79,6 @@ print "[" +str(datetime.datetime.now())+"]" + "Comparing 'cc' and 'cc2':"
 # print "\tRand index: %f, fscore: %f, prec: %f, rec: %f" % (ri,fscore,prec,rec)
 V_rand,V_rand_split,V_rand_merge = m.compute_V_rand_N2(cc,cc2)
 print "[" +str(datetime.datetime.now())+"]" + "\tV_rand: %f, V_rand_split: %f, V_rand_merge: %f" % (V_rand,V_rand_split,V_rand_merge)
+
+'''
 

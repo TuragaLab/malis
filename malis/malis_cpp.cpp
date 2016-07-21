@@ -5,6 +5,9 @@
 #include <vector>
 #include <queue>
 #include <map>
+#include <cstdio>
+#include <cstddef>
+#include <cstdint>
 using namespace std;
 
 template <class T>
@@ -26,21 +29,21 @@ class AffinityGraphCompare{
  * Author: Srini Turaga (sturaga@mit.edu)
  * All rights reserved
  */
-void malis_loss_weights_cpp(const int nVert, const int* seg,
-               const int nEdge, const int* node1, const int* node2, const float* edgeWeight,
+void malis_loss_weights_cpp(const int nVert, const uint64_t* seg,
+               const int nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
                const int pos,
                int* nPairPerEdge){
 
 
     /* Disjoint sets and sparse overlap vectors */
-    vector<map<int,int> > overlap(nVert);
-    vector<int> rank(nVert);
-    vector<int> parent(nVert);
-    boost::disjoint_sets<int*, int*> dsets(&rank[0],&parent[0]);
+    vector<map<uint64_t,uint64_t> > overlap(nVert);
+    vector<uint64_t> rank(nVert);
+    vector<uint64_t> parent(nVert);
+    boost::disjoint_sets<uint64_t*, uint64_t*> dsets(&rank[0],&parent[0]);
     for (int i=0; i<nVert; ++i){
         dsets.make_set(i);
         if (0!=seg[i]) {
-            overlap[i].insert(pair<int,int>(seg[i],1));
+            overlap[i].insert(pair<uint64_t,uint64_t>(seg[i],1));
         }
     }
 
@@ -58,9 +61,9 @@ void malis_loss_weights_cpp(const int nVert, const int* seg,
 
     /* Start MST */
     int e;
-    int set1, set2;
-    int nPair = 0;
-    map<int,int>::iterator it1, it2;
+    uint64_t set1, set2;
+    uint64_t nPair = 0;
+    map<uint64_t,uint64_t>::iterator it1, it2;
 
     /* Start Kruskal's */
     for (unsigned int i = 0; i < pqueue.size(); ++i ) {
@@ -96,7 +99,7 @@ void malis_loss_weights_cpp(const int nVert, const int* seg,
             while (it2 != overlap[set2].end()) {
                 it1 = overlap[set1].find(it2->first);
                 if (it1 == overlap[set1].end()) {
-                    overlap[set1].insert(pair<int,int>(it2->first,it2->second));
+                    overlap[set1].insert(pair<uint64_t,uint64_t>(it2->first,it2->second));
                 } else {
                     it1->second += it2->second;
                 }
