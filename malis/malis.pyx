@@ -5,15 +5,15 @@ import scipy.sparse
 from libc.stdint cimport uint64_t
 
 cdef extern from "malis_cpp.h":
-    void malis_loss_weights_cpp(const int nVert, const uint64_t* segTrue,
-                   const int nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
+    void malis_loss_weights_cpp(const uint64_t nVert, const uint64_t* segTrue,
+                   const uint64_t nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
                    const int pos,
                    uint64_t* nPairPerEdge);
-    void connected_components_cpp(const int nVert,
-                   const int nEdge, const uint64_t* node1, const uint64_t* node2, const int* edgeWeight,
+    void connected_components_cpp(const uint64_t nVert,
+                   const uint64_t nEdge, const uint64_t* node1, const uint64_t* node2, const int* edgeWeight,
                    uint64_t* seg);
-    void marker_watershed_cpp(const int nVert, const uint64_t* marker,
-                   const int nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
+    void marker_watershed_cpp(const uint64_t nVert, const uint64_t* marker,
+                   const uint64_t nEdge, const uint64_t* node1, const uint64_t* node2, const float* edgeWeight,
                    uint64_t* seg);
 
 def malis_loss_weights(np.ndarray[uint64_t, ndim=1] segTrue,
@@ -21,8 +21,8 @@ def malis_loss_weights(np.ndarray[uint64_t, ndim=1] segTrue,
                 np.ndarray[uint64_t, ndim=1] node2,
                 np.ndarray[float, ndim=1] edgeWeight,
                 int pos):
-    cdef int nVert = segTrue.shape[0]
-    cdef int nEdge = node1.shape[0]
+    cdef uint64_t nVert = segTrue.shape[0]
+    cdef uint64_t nEdge = node1.shape[0]
     segTrue = np.ascontiguousarray(segTrue)
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
@@ -35,12 +35,12 @@ def malis_loss_weights(np.ndarray[uint64_t, ndim=1] segTrue,
     return nPairPerEdge
 
 
-def connected_components(int nVert,
+def connected_components(uint64_t nVert,
                          np.ndarray[uint64_t,ndim=1] node1,
                          np.ndarray[uint64_t,ndim=1] node2,
                          np.ndarray[int,ndim=1] edgeWeight,
                          int sizeThreshold=1):
-    cdef int nEdge = node1.shape[0]
+    cdef uint64_t nEdge = node1.shape[0]
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
     edgeWeight = np.ascontiguousarray(edgeWeight)
@@ -57,8 +57,8 @@ def marker_watershed(np.ndarray[uint64_t,ndim=1] marker,
                      np.ndarray[uint64_t,ndim=1] node2,
                      np.ndarray[float,ndim=1] edgeWeight,
                      int sizeThreshold=1):
-    cdef int nVert = marker.shape[0]
-    cdef int nEdge = node1.shape[0]
+    cdef uint64_t nVert = marker.shape[0]
+    cdef uint64_t nEdge = node1.shape[0]
     marker = np.ascontiguousarray(marker)
     node1 = np.ascontiguousarray(node1)
     node2 = np.ascontiguousarray(node2)
