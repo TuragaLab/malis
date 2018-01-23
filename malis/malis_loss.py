@@ -104,9 +104,41 @@ def malis_weights_op(affs, gt_affs, gt_seg, neighborhood, gt_aff_mask=None, name
 
     return weights[0]
 
-def malis_loss_op(affs, gt_affs, gt_seg, neighborhood, gt_aff_mask=None, name=None):
-    '''Returns a tensorflow op to compute the MALIS loss, using the squared
-    distance to the target values for each edge as base loss.
+def malis_loss_op(
+        affs,
+        gt_affs,
+        gt_seg,
+        neighborhood,
+        gt_aff_mask=None,
+        gt_seg_unlabelled=None,
+        name=None):
+
+    '''Returns a tensorflow op to compute the constrained MALIS loss, using the
+    squared distance to the target values for each edge as base loss.
+
+    In the simplest case, you need to provide predicted affinities (``affs``),
+    ground-truth affinities (``gt_affs``), a ground-truth segmentation
+    (``gt_seg``), and the neighborhood that corresponds to the affinities.
+
+    This loss also supports masks indicating unknown ground-truth. We
+    distinguish two types of unknowns:
+
+        1. Out of ground-truth. This is the case at the boundary of your
+           labelled area. It is unknown whether objects continue or stop at the
+           transition of the labelled area. This mask is given on edges as
+           argument ``gt_aff_mask``.
+
+        2. Unlabelled objects. It is known that there exists a boundary between
+           the labelled area and unlabelled objects. Withing the unlabelled
+           objects area, it is unknown where boundaries are. This mask is also
+           given on edges as argument ``gt_aff_mask``, and with an additional
+           argument ``gt_seg_unlabelled`` to indicate where unlabelled objects
+           are in the ground-truth segmentation.
+
+    Both types of unknowns require masking edges to exclude them from the loss:
+    For "out of ground-truth", these are all edges that have at least one node
+    inside the "out of ground-truth" area. For "unlabelled objects", these are
+    all edges that have both nodes inside the "unlabelled objects" area.
 
     Args:
 
@@ -122,9 +154,19 @@ def malis_loss_op(affs, gt_affs, gt_seg, neighborhood, gt_aff_mask=None, name=No
 
         gt_aff_mask (Tensor): A binary mask indicating where ground-truth
             affinities are known (known = 1, unknown = 0). This is to be used
-            for sparsely labelled ground-truth. Edges with unknown affinities
-            will not be constrained in the two malis passes, and will not
-            contribute to the loss.
+            for sparsely labelled ground-truth and at the borders of labelled
+            areas. Edges with unknown affinities will not be constrained in the
+            two malis passes, and will not contribute to the loss.
+
+        gt_seg_unlabelled (Tensor): A binary mask indicating where the
+            ground-truth contains unlabelled objects (labelled = 1, unlabelled
+            = 0). This is to be used for ground-truth where only some objects
+            have been labelled. Note that this mask is a complement to
+            ``gt_aff_mask``: It is assumed that no objects cross from labelled
+            to unlabelled, i.e., the boundary is a real object boundary.
+            Ground-truth affinities within the unlabelled areas should be
+            masked out in ``gt_aff_mask``. Ground-truth affinities between
+            labelled and unlabelled areas should be zero in ``gt_affs``.
 
         name (string, optional): A name to use for the operators created.
 
@@ -132,6 +174,11 @@ def malis_loss_op(affs, gt_affs, gt_seg, neighborhood, gt_aff_mask=None, name=No
 
         A tensor with one element, the MALIS loss.
     '''
+
+    # replace the unlabelled-object area with a new unique ID
+    if gt_seg_unlabelled is not None:
+        gt_seg = gt_seg + 0 # yep, this is how to make a copy in TF...
+        gt_seg[gt_seg_unlabelled == 0] = tf.reduce_max(gt_seg) + 1
 
     weights = malis_weights_op(affs, gt_affs, gt_seg, neighborhood, gt_aff_mask, name)
     edge_loss = tf.square(tf.subtract(gt_affs, affs))
