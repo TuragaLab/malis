@@ -10,7 +10,11 @@ class MalisWeights(object):
         self.neighborhood = np.asarray(neighborhood)
         self.edge_list = nodelist_like(self.output_shape, self.neighborhood)
 
-    def get_edge_weights(self, affs, gt_affs, gt_seg, gt_aff_mask):
+    def get_edge_weights(self, affs, gt_affs, gt_seg, gt_aff_mask, gt_seg_unlabelled):
+
+        # replace the unlabelled-object area with a new unique ID
+        if gt_seg_unlabelled.size > 0:
+            gt_seg[gt_seg_unlabelled == 0] = gt_seg.max() + 1
 
         assert affs.shape[0] == len(self.neighborhood)
 
@@ -26,7 +30,7 @@ class MalisWeights(object):
         #   negative pass (pos == 0): affs[gt_affs == 1] = 1
         pass_affs = np.copy(affs)
 
-        if gt_aff_mask is None:
+        if gt_aff_mask.size == 0:
             constraint_edges = gt_affs == (1 - pos)
         else:
             constraint_edges = np.logical_and(
@@ -48,7 +52,7 @@ class MalisWeights(object):
         weights[gt_affs == (1 - pos)] = 0
 
         # masked-out samples don't contribute
-        if gt_aff_mask is not None:
+        if gt_aff_mask.size > 0:
             weights[gt_aff_mask == 0] = 0
 
         # normalize
@@ -59,7 +63,15 @@ class MalisWeights(object):
 
         return weights
 
-def malis_weights_op(affs, gt_affs, gt_seg, neighborhood, gt_aff_mask=None, name=None):
+def malis_weights_op(
+        affs,
+        gt_affs,
+        gt_seg,
+        neighborhood,
+        gt_aff_mask=None,
+        gt_seg_unlabelled=None,
+        name=None):
+
     '''Returns a tensorflow op to compute just the weights of the MALIS loss.
     This is to be multiplied with an edge-wise base loss and summed up to create
     the final loss. For the Euclidean loss, use ``malis_loss_op``.
@@ -82,6 +94,16 @@ def malis_weights_op(affs, gt_affs, gt_seg, neighborhood, gt_aff_mask=None, name
             will not be constrained in the two malis passes, and will not
             contribute to the loss.
 
+        gt_seg_unlabelled (Tensor): A binary mask indicating where the
+            ground-truth contains unlabelled objects (labelled = 1, unlabelled
+            = 0). This is to be used for ground-truth where only some objects
+            have been labelled. Note that this mask is a complement to
+            ``gt_aff_mask``: It is assumed that no objects cross from labelled
+            to unlabelled, i.e., the boundary is a real object boundary.
+            Ground-truth affinities within the unlabelled areas should be
+            masked out in ``gt_aff_mask``. Ground-truth affinities between
+            labelled and unlabelled areas should be zero in ``gt_affs``.
+
         name (string, optional): A name to use for the operators created.
 
     Returns:
@@ -90,15 +112,31 @@ def malis_weights_op(affs, gt_affs, gt_seg, neighborhood, gt_aff_mask=None, name
         edge.
     '''
 
+    if gt_aff_mask is None:
+        gt_aff_mask = tf.zeros((0,))
+    if gt_seg_unlabelled is None:
+        gt_seg_unlabelled = tf.zeros((0,))
+
     output_shape = gt_seg.get_shape().as_list()
 
     malis_weights = MalisWeights(output_shape, neighborhood)
-    malis_functor = lambda affs, gt_affs, gt_seg, gt_aff_mask, mw=malis_weights: \
-        mw.get_edge_weights(affs, gt_affs, gt_seg, gt_aff_mask)
+    malis_functor = lambda \
+            affs, \
+            gt_affs, \
+            gt_seg, \
+            gt_aff_mask, \
+            gt_seg_unlabelled, \
+            mw=malis_weights: \
+        mw.get_edge_weights(
+            affs,
+            gt_affs,
+            gt_seg,
+            gt_aff_mask,
+            gt_seg_unlabelled)
 
     weights = tf.py_func(
         malis_functor,
-        [affs, gt_affs, gt_seg, gt_aff_mask],
+        [affs, gt_affs, gt_seg, gt_aff_mask, gt_seg_unlabelled],
         [tf.float32],
         name=name)
 
@@ -175,12 +213,14 @@ def malis_loss_op(
         A tensor with one element, the MALIS loss.
     '''
 
-    # replace the unlabelled-object area with a new unique ID
-    if gt_seg_unlabelled is not None:
-        gt_seg = gt_seg + 0 # yep, this is how to make a copy in TF...
-        gt_seg[gt_seg_unlabelled == 0] = tf.reduce_max(gt_seg) + 1
-
-    weights = malis_weights_op(affs, gt_affs, gt_seg, neighborhood, gt_aff_mask, name)
+    weights = malis_weights_op(
+        affs,
+        gt_affs,
+        gt_seg,
+        neighborhood,
+        gt_aff_mask,
+        gt_seg_unlabelled,
+        name)
     edge_loss = tf.square(tf.subtract(gt_affs, affs))
 
     return tf.reduce_sum(tf.multiply(weights, edge_loss))
