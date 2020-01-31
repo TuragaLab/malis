@@ -1,6 +1,9 @@
 import numpy as np
 cimport numpy as np
-from scipy.misc import comb
+try:  # scipy >= 0.19
+    from scipy.special import comb
+except ImportError:
+    from scipy.misc import comb
 import scipy.sparse
 from libc.stdint cimport uint64_t
 
