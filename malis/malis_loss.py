@@ -1,4 +1,7 @@
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
 import numpy as np
 from .malis import nodelist_like, malis_loss_weights
 
