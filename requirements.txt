@@ -1,7 +1,9 @@
 # runtime
 Cython>=0.24
-numpy>=1.9
-scipy  # unknown minimum version...
+# https://github.com/TuragaLab/malis/issues/6
+numpy>=1.9,<1.12
+# https://github.com/TuragaLab/malis/issues/8
+scipy<1.3
 
 # tests
 h5py
