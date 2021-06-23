@@ -17,5 +17,5 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -U pip -r requirements.txt
-      - run: python setup.py build_ext --inplace
+      - run: bash make.sh
       - run: python malis/test_malis.py
